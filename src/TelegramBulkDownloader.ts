@@ -118,7 +118,7 @@ class TelegramBulkDownloader {
       .get(id)
       .mediaTypes.find((e: any) => e.type === mediaType).offset;
 
-    const maxMessagesForCycle = 1000;
+    const maxMessagesForCycle = 50;
     
     let messages: Message[] = [];
     let offset = 0;
