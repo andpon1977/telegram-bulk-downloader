@@ -97,117 +97,93 @@ class TelegramBulkDownloader {
   }
 
   private async downloadMediaType(entity: Entity, mediaType: MediaType) {
-    if (!this.client) throw new Error('TelegramClient undefined');
-    this.isDownloading = true;
-    const id = entity.id.toString();
-    const latestMessage = await this.client.getMessages(entity, { limit: 1 });
-    this.state.set(id, { ...this.state.get(id), limit: latestMessage[0].id });
+  if (!this.client) throw new Error('TelegramClient undefined');
+  this.isDownloading = true;
+  const id = entity.id.toString();
+  const latestMessage = await this.client.getMessages(entity, { limit: 1 });
+  this.state.set(id, { ...this.state.get(id), limit: latestMessage[0].id });
 
-    const metadataOption = this.state.get(id).metadata;
-    let jsonSerializer;
-    if (metadataOption) {
-      jsonSerializer = new JsonSerializer(
-        path.join(this.state.get(id).outPath, 'metadata.json')
-      );
+  const metadataOption = this.state.get(id).metadata;
+  let jsonSerializer;
+  if (metadataOption) {
+    jsonSerializer = new JsonSerializer(
+      path.join(this.state.get(id).outPath, 'metadata.json')
+    );
+  }
+
+  while (true) {
+    let offset = this.state
+      .get(id)
+      .mediaTypes.find((e: any) => e.type === mediaType).offset;
+
+    const messages = await this.client.getMessages(entity, {
+      limit: 1000,
+      offsetId: offset,
+      reverse: true,
+      filter: getInputFilter(mediaType),
+    });
+
+    const mediaMessages = messages;
+
+    const baseDownloadDir = this.state.get(id).outPath;
+    if (!fs.existsSync(baseDownloadDir)) {
+      fs.mkdirSync(baseDownloadDir, { recursive: true });
     }
 
-    while (true) {
-      let offset = this.state
-        .get(id)
-        .mediaTypes.find((e: any) => e.type === mediaType).offset;
+    let msgId = offset;
+    for (const msg of mediaMessages) {
+      // Usa replyToMsgId per la sottocartella
+      let subfolder = 'NoTopic';
+      if (msg.replyTo && msg.replyTo.replyToMsgId) {
+        subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
+      }
+      const downloadDir = path.join(baseDownloadDir, subfolder);
 
-      const messages = await this.client.getMessages(entity, {
-        limit: 1000,
-        offsetId: offset,
-        reverse: true,
-        filter: getInputFilter(mediaType),
-      });
-
-      const mediaMessages = messages;
-
-      const downloadDir = this.state.get(id).outPath;
       if (!fs.existsSync(downloadDir)) {
         fs.mkdirSync(downloadDir, { recursive: true });
       }
 
-      let msgId = offset;
-      for (const msg of mediaMessages) {
-         //BEGIN MIE MODIFICHE 
-          const filePath = path.join( downloadDir, `${msg.id}.${getFilenameExtension(msg)}` );
-        console.log(` -  ${filePath} - `);
-          // Controlla se il file esiste già, se sì, salta il download
-        if (fs.existsSync(filePath)) {
-          console.log(`File ${filePath} già esistente, salto download.`);
-          continue;
-        }
-        //END MIE MODIFICHE 
-        const bar = new cliProgress.SingleBar(
-          {
-            format: `${msg.id}.${getFilenameExtension(
-              msg
-            )} {bar} {percentage}% | ETA: {eta}s`,
+      const filePath = path.join(
+        downloadDir,
+        `${msg.id}.${getFilenameExtension(msg)}`
+      );
+      console.log(` -  ${filePath} - `);
+      // Controlla se il file esiste già, se sì, salta il download
+      if (fs.existsSync(filePath)) {
+        console.log(`File ${filePath} già esistente, salto download.`);
+        continue;
+      }
+
+      const bar = new cliProgress.SingleBar(
+        {
+          format: `${msg.id}.${getFilenameExtension(
+            msg
+          )} {bar} {percentage}% | ETA: {eta}s`,
+        },
+        cliProgress.Presets.legacy
+      );
+      bar.start(100, 0);
+      try {
+        const buffer = await this.client.downloadMedia(msg, {
+          progressCallback: (downloaded, total) => {
+            if (this.SIGINT) throw new Error(`Aborting download, SIGINT=true`);
+            const ratio = Number(downloaded) / Number(total);
+            const progress = Math.round(Number(ratio) * 100);
+            bar.update(progress);
           },
-          cliProgress.Presets.legacy
-        );
-        bar.start(100, 0);
-        try {
-          const buffer = await this.client.downloadMedia(msg, {
-            progressCallback: (downloaded, total) => {
-              if (this.SIGINT)
-                throw new Error(`Aborting download, SIGINT=true`);
-              const ratio = Number(downloaded) / Number(total);
-              const progress = Math.round(Number(ratio) * 100);
-              bar.update(progress);
-            },
-          });
-          bar.update(100);
-          bar.stop();
-          const filePath = path.join(
-            downloadDir,
-            `${msg.id}.${getFilenameExtension(msg)}`
-          );
-          fs.writeFileSync(filePath, buffer as any);
-          msgId = msg.id;
-        } catch (err) {
-          console.warn(err);
-        }
-        if (jsonSerializer) await jsonSerializer.append(msg);
-        if (this.SIGINT) break;
-      }
-
-      offset = mediaMessages.length <= 0 ? offset + 999 : msgId;
-
-      this.state.set(id, {
-        ...this.state.get(id),
-        mediaTypes: this.state.get(id).mediaTypes.map((e: any) => {
-          if (e.type === mediaType)
-            return {
-              ...e,
-              offset,
-            };
-          return e;
-        }),
-      });
-
-      if (this.SIGINT) {
-        console.log(`Exiting, SIGINT=${this.SIGINT}`);
-        await this.client.disconnect();
-        await this.client.destroy();
-        await this.state.commit();
-        process.exit(0);
-      }
-      if (offset >= this.state.get(id).limit) {
-        console.log(`Exiting, SIGINT=${this.SIGINT}`);
-        this.state.set(id, {
-          ...this.state.get(id),
-          mediaTypes: this.state
-            .get(id)
-            .mediaTypes.filter((e: any) => e.type !== mediaType),
         });
-        break;
+        bar.update(100);
+        bar.stop();
+        fs.writeFileSync(filePath, buffer as any);
+        msgId = msg.id;
+      } catch (err) {
+        console.warn(err);
       }
+      if (jsonSerializer) await jsonSerializer.append(msg);
+      if (this.SIGINT) break;
     }
   }
+}
 
   private async resume() {
     if (!this.client) throw new Error('TelegramClient undefined');
