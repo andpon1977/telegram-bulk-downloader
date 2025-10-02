@@ -167,11 +167,8 @@ class TelegramBulkDownloader {
         }
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
-        const rawFileName = msg.fileName || null; // esempio "telegram_video 15.mp4"
-        console.log(` -  ${rawFileName} - `);
-        const fileName = rawFileName
-          ? `${msg.id}_${rawFileName}`
-          : `${msg.id}.${getFilenameExtension(msg)}`;
+        const rawFileName = extractFileName(msg);
+        const fileName = rawFileName ? `${msg.id}_${rawFileName}` : `${msg.id}.${getFilenameExtension(msg)}`;
 
         const filePath = path.join(downloadDir, fileName);
 
@@ -212,6 +209,14 @@ class TelegramBulkDownloader {
     }
   }
 }
+
+  function extractFileName(msg: any): string | null {
+    if (!msg.media || !msg.media.document || !Array.isArray(msg.media.document.attributes)) {
+      return null;
+    }
+    const attr = msg.media.document.attributes.find((a: any) => typeof a.fileName === 'string');
+    return attr ? attr.fileName : null;
+  }
 
   private async resume() {
     if (!this.client) throw new Error('TelegramClient undefined');
