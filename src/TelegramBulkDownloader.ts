@@ -22,6 +22,7 @@ class TelegramBulkDownloader {
   isDownloading: boolean;
   private SIGINT: boolean;
   private client?: TelegramClient;
+  let topicFilter: string | undefined = process.argv[2];
   constructor() {
     this.storage = new Byteroo({
       name: 'TelegramBulkDownloader',
@@ -223,7 +224,7 @@ class TelegramBulkDownloader {
   }
 
   async main() {
-    const topicFilter = process.argv[2]; // legge argomento come filtro
+    //const topicFilter = process.argv[2]; // legge argomento come filtro
     let API_ID = this.credentials.get('API_ID');
     if (!API_ID) {
       API_ID = await ask('Please provide your API_ID: ');
