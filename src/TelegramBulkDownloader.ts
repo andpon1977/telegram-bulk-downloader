@@ -132,6 +132,18 @@ class TelegramBulkDownloader {
 
       let msgId = offset;
       for (const msg of mediaMessages) {
+         //BEGIN MIE MODIFICHE 
+          const filePath = path.join(
+              downloadDir,
+            `${msg.id}.${getFilenameExtension(msg)}`
+          );
+  
+          // Controlla se il file esiste già, se sì, salta il download
+        if (fs.existsSync(filePath)) {
+          console.log(`File ${filePath} già esistente, salto download.`);
+          continue;
+        }
+        //END MIE MODIFICHE 
         const bar = new cliProgress.SingleBar(
           {
             format: `${msg.id}.${getFilenameExtension(
