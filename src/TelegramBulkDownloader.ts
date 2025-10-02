@@ -133,11 +133,8 @@ class TelegramBulkDownloader {
       let msgId = offset;
       for (const msg of mediaMessages) {
          //BEGIN MIE MODIFICHE 
-          const filePath = path.join(
-              downloadDir,
-            `${msg.id}.${getFilenameExtension(msg)}`
-          );
-  
+          const filePath = path.join( downloadDir, `${msg.id}.${getFilenameExtension(msg)}` );
+        console.log(` -  ${filePath} - `);
           // Controlla se il file esiste già, se sì, salta il download
         if (fs.existsSync(filePath)) {
           console.log(`File ${filePath} già esistente, salto download.`);
