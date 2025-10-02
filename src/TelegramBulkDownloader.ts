@@ -131,7 +131,19 @@ class TelegramBulkDownloader {
     }
 
     let msgId = offset;
+ 
+      ////////
     for (const msg of mediaMessages) {
+      // Controlla filtro topic
+      const shouldDownload =
+        !topicFilter ||
+        (msg.replyTo && msg.replyTo.replyToMsgId?.toString() === topicFilter);
+
+      if (!shouldDownload) {
+          console.log(`Salto msg ${msg.id}, replyToMsgId diverso da ${topicFilter}`);
+          continue;
+      }
+      ////////
       // Usa replyToMsgId per la sottocartella
       let subfolder = 'NoTopic';
       if (msg.replyTo && msg.replyTo.replyToMsgId) {
@@ -211,6 +223,7 @@ class TelegramBulkDownloader {
   }
 
   async main() {
+    const topicFilter = process.argv[2]; // legge argomento come filtro
     let API_ID = this.credentials.get('API_ID');
     if (!API_ID) {
       API_ID = await ask('Please provide your API_ID: ');
