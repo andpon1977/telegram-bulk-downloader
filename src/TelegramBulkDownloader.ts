@@ -155,30 +155,31 @@ class TelegramBulkDownloader {
  
       ////////
     for (const msg of mediaMessages) {
-      // Controlla filtro topic
 
-      ////////
-      // Usa replyToMsgId per la sottocartella
-      let subfolder = 'NoTopic';
-      if (msg.replyTo && msg.replyTo.replyToMsgId) {
-        subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
-      }
-      const downloadDir = path.join(baseDownloadDir, subfolder);
+        let subfolder = 'NoTopic';
+        if (msg.replyTo && msg.replyTo.replyToMsgId) {
+          subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
+        }
+        const downloadDir = path.join(baseDownloadDir, subfolder);
 
-      if (!fs.existsSync(downloadDir)) {
-        fs.mkdirSync(downloadDir, { recursive: true });
-      }
+        if (!fs.existsSync(downloadDir)) {
+          fs.mkdirSync(downloadDir, { recursive: true });
+        }
 
-      const filePath = path.join(
-        downloadDir,
-        `${msg.id}.${getFilenameExtension(msg)}`
-      );
-      console.log(` -  ${filePath} - `);
-      // Controlla se il file esiste già, se sì, salta il download
-      if (fs.existsSync(filePath)) {
-        console.log(`File ${filePath} già esistente, salto download.`);
-        continue;
-      }
+        // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
+        const rawFileName = msg.fileName || null; // esempio "telegram_video 15.mp4"
+        const fileName = rawFileName
+          ? `${msg.id}_${rawFileName}`
+          : `${msg.id}.${getFilenameExtension(msg)}`;
+
+        const filePath = path.join(downloadDir, fileName);
+
+        console.log(` -  ${filePath} - `);
+        // Controlla se il file esiste già, se sì, salta il download
+        if (fs.existsSync(filePath)) {
+          console.log(`File ${filePath} già esistente, salto download.`);
+          continue;
+        }
 
       const bar = new cliProgress.SingleBar(
         {
