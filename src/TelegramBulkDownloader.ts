@@ -168,6 +168,7 @@ class TelegramBulkDownloader {
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
         const rawFileName = msg.fileName || null; // esempio "telegram_video 15.mp4"
+        console.log(` -  ${rawFileName} - `);
         const fileName = rawFileName
           ? `${msg.id}_${rawFileName}`
           : `${msg.id}.${getFilenameExtension(msg)}`;
