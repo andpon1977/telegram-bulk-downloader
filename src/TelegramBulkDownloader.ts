@@ -22,8 +22,9 @@ class TelegramBulkDownloader {
   isDownloading: boolean;
   private SIGINT: boolean;
   private client?: TelegramClient;
-  let topicFilter: string | undefined = process.argv[2];
+  private topicFilter: string | undefined;
   constructor() {
+    this.topicFilter = process.argv[2];
     this.storage = new Byteroo({
       name: 'TelegramBulkDownloader',
       autocommit: true,
@@ -137,11 +138,11 @@ class TelegramBulkDownloader {
     for (const msg of mediaMessages) {
       // Controlla filtro topic
       const shouldDownload =
-        !topicFilter ||
-        (msg.replyTo && msg.replyTo.replyToMsgId?.toString() === topicFilter);
+        !this.topicFilter ||
+        (msg.replyTo && msg.replyTo.replyToMsgId?.toString() === this.topicFilter);
 
       if (!shouldDownload) {
-          console.log(`Salto msg ${msg.id}, replyToMsgId diverso da ${topicFilter}`);
+          console.log(`Salto msg ${msg.id}, replyToMsgId diverso da ${this.topicFilter}`);
           continue;
       }
       ////////
