@@ -210,7 +210,7 @@ class TelegramBulkDownloader {
   }
 }
 
-  function extractFileName(msg: any): string | null {
+  private extractFileName(msg: any): string | null {
     if (!msg.media || !msg.media.document || !Array.isArray(msg.media.document.attributes)) {
       return null;
     }
