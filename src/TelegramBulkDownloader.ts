@@ -14,6 +14,7 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
+import { Message } from 'telegram';
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -114,14 +115,13 @@ class TelegramBulkDownloader {
   }
 
   while (true) {
-    let offset = this.state
-      .get(id)
-      .mediaTypes.find((e: any) => e.type === mediaType).offset;
+    const maxMessagesForCycle = 1000;
+    const topicFilter = process.argv[2]; // esempio "10" oppure undefined
 
-    const maxMessagesForCycle = 50;
-    
     let messages: Message[] = [];
-    let offset = 0;
+    let offset = this.state
+        .get(id)
+        .mediaTypes.find((e: any) => e.type === mediaType).offset;
 
     while (messages.length < maxMessagesForCycle) {
       const messagesTmp = await this.client.getMessages(entity, {
@@ -131,16 +131,19 @@ class TelegramBulkDownloader {
         filter: getInputFilter(mediaType),
       });
 
-      if (messagesTmp.length === 0) break;
+      if (messagesTmp.length === 0) break; // non ci sono più messaggi da prendere
 
-      const filtered = this.topicFilter
-        ? messagesTmp.filter(msg => msg.replyTo?.replyToMsgId?.toString() === this.topicFilter)
+      // filtra solo quelli con topicFilter se è definito
+      const filtered = topicFilter
+        ? messagesTmp.filter(msg => msg.replyTo?.replyToMsgId?.toString() === topicFilter)
         : messagesTmp;
 
       messages = messages.concat(filtered);
 
+      // aggiorna offset per il prossimo ciclo
       offset = messagesTmp[messagesTmp.length - 1].id;
     }
+
     
     const mediaMessages = messages;
 
