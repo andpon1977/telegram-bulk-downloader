@@ -14,7 +14,6 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
-import { Message } from 'telegram';
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -117,7 +116,7 @@ class TelegramBulkDownloader {
   while (true) {
     const maxMessagesForCycle = 1000;
     const topicFilter = process.argv[2]; // esempio "10" oppure undefined
-
+    type Message = any;
     let messages: Message[] = [];
     let offset = this.state
         .get(id)
