@@ -118,13 +118,30 @@ class TelegramBulkDownloader {
       .get(id)
       .mediaTypes.find((e: any) => e.type === mediaType).offset;
 
-    const messages = await this.client.getMessages(entity, {
-      limit: 1000,
-      offsetId: offset,
-      reverse: true,
-      filter: getInputFilter(mediaType),
-    });
+    const maxMessagesForCycle = 1000;
+    
+    let messages: Message[] = [];
+    let offset = 0;
 
+    while (messages.length < maxMessagesForCycle) {
+      const messagesTmp = await this.client.getMessages(entity, {
+        limit: maxMessagesForCycle,
+        offsetId: offset,
+        reverse: true,
+        filter: getInputFilter(mediaType),
+      });
+
+      if (messagesTmp.length === 0) break;
+
+      const filtered = this.topicFilter
+        ? messagesTmp.filter(msg => msg.replyTo?.replyToMsgId?.toString() === this.topicFilter)
+        : messagesTmp;
+
+      messages = messages.concat(filtered);
+
+      offset = messagesTmp[messagesTmp.length - 1].id;
+    }
+    
     const mediaMessages = messages;
 
     const baseDownloadDir = this.state.get(id).outPath;
@@ -137,14 +154,7 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
       // Controlla filtro topic
-      const shouldDownload =
-        !this.topicFilter ||
-        (msg.replyTo && msg.replyTo.replyToMsgId?.toString() === this.topicFilter);
 
-      if (!shouldDownload) {
-          console.log(`Salto msg ${msg.id}, replyToMsgId diverso da ${this.topicFilter}`);
-          continue;
-      }
       ////////
       // Usa replyToMsgId per la sottocartella
       let subfolder = 'NoTopic';
