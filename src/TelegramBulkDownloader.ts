@@ -167,7 +167,7 @@ class TelegramBulkDownloader {
         }
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
-        const rawFileName = extractFileName(msg);
+        const rawFileName = this.extractFileName(msg);
         const fileName = rawFileName ? `${msg.id}_${rawFileName}` : `${msg.id}.${getFilenameExtension(msg)}`;
 
         const filePath = path.join(downloadDir, fileName);
