@@ -27,6 +27,7 @@ class TelegramBulkDownloader {
   //private alreadyDownloadedKeys: string | undefined;
   private alreadyDownloadedFile: string | undefined;
   
+  
   constructor() {
     this.alreadyDownloadedKeys = new Set<string>();
     this.alreadyDownloadedFile = '/home/andrea/downloaded_files.txt';
@@ -197,7 +198,10 @@ class TelegramBulkDownloader {
           console.log(`File ${filePath} già esistente, salto download.`);
           continue;
         }
-
+        if (!filteredMessages) {
+          console.log(`File ${filePath} già scaricato, salto download.`);
+          continue;        
+        }
       const bar = new cliProgress.SingleBar(
         {
           format: `${msg.id}.${getFilenameExtension(
@@ -218,8 +222,10 @@ class TelegramBulkDownloader {
         });
         bar.update(100);
         bar.stop();
+        
         this.onDownloadedMessage(msg); 
         fs.writeFileSync(filePath, buffer as any);
+        
         msgId = msg.id;
         
       } catch (err) {
