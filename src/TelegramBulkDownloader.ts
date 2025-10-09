@@ -123,6 +123,7 @@ class TelegramBulkDownloader {
   while (true) {
     const maxMessagesForCycle = 10000;
     const topicFilter = process.argv[2]; // esempio "10" oppure undefined
+    
     type Message = any;
     let messages: Message[] = [];
     let offset = this.state
@@ -198,6 +199,12 @@ class TelegramBulkDownloader {
           console.log(`File ${filePath} già esistente, salto download.`);
           continue;
         }
+        // filtraggio nel ciclo messaggi
+        const filteredMessages = msg.filter(m => {
+         const key = this.makeKeyFromMessage(m);
+         if (!key) return true; // scarica se non si può calcolare il filtro, per sicurezza
+         return !this.alreadyDownloadedKeys.has(key);
+        });
         if (!filteredMessages) {
           console.log(`File ${filePath} già scaricato, salto download.`);
           continue;        
