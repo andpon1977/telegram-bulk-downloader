@@ -23,7 +23,8 @@ class TelegramBulkDownloader {
   private SIGINT: boolean;
   private client?: TelegramClient;
   private topicFilter: string | undefined;
-  private alreadyDownloadedKeys: string | undefined;
+  private alreadyDownloadedKeys: Set<string>;
+  //private alreadyDownloadedKeys: string | undefined;
   private alreadyDownloadedFile: string | undefined;
   
   constructor() {
