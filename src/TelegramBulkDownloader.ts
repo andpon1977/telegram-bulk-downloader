@@ -262,7 +262,7 @@ private loadAlreadyDownloadedKeys() {
   //const lines = fs.readFileSync(this.alreadyDownloadedFile, 'utf8').split('\n');
   const lines = fs.readFileSync(this.alreadyDownloadedFile!, 'utf8').split('\n');
   for (const line of lines) {
-    if (line.trim().length > 0) alreadyDownloadedKeys.add(line.trim());
+    if (line.trim().length > 0) this.alreadyDownloadedKeys.add(line.trim());
   }
 }
 
