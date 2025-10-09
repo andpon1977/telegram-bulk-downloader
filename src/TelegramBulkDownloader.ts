@@ -232,7 +232,7 @@ class TelegramBulkDownloader {
 }
 
   // Funzione di utilità per generare la stringa chiave da un messaggio
-private makeKeyFromMessage(msg: Message): string | null {
+private makeKeyFromMessage(msg: any): string | null {
   if (!msg.media || !msg.media.document || !msg.media.document.attributes) return null;
   const doc = msg.media.document;
   const videoAttr = doc.attributes.find((attr: any) => attr.className === "DocumentAttributeVideo");
@@ -250,7 +250,7 @@ private makeKeyFromMessage(msg: Message): string | null {
 }
 
 // alla fine del download di un messaggio:
-private onDownloadedMessage(m: Message) {
+private onDownloadedMessage(m: any) {
   const key = this.makeKeyFromMessage(m);
   if (key) this.saveKey(key);
 }
