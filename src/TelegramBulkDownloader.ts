@@ -28,6 +28,7 @@ class TelegramBulkDownloader {
   private alreadyDownloadedFile: string | undefined;
   
   constructor() {
+    this.alreadyDownloadedKeys = new Set<string>();
     this.alreadyDownloadedFile = '/home/andrea/downloaded_files.txt';
     this.topicFilter = process.argv[2];
     this.storage = new Byteroo({
