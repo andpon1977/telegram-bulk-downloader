@@ -118,7 +118,7 @@ class TelegramBulkDownloader {
   }
 
   while (true) {
-    const maxMessagesForCycle = 1000;
+    const maxMessagesForCycle = 100;
     const topicFilter = process.argv[2]; // esempio "10" oppure undefined
     type Message = any;
     let messages: Message[] = [];
