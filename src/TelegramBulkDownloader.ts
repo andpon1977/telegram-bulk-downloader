@@ -142,6 +142,7 @@ class TelegramBulkDownloader {
 
       // Esempio di controllo durante l'elaborazione dei messaggi
       this.alreadyDownloadedKeys = new Set<string>();
+      this.loadAlreadyDownloadedKeys();
 
 
       // filtraggio nel ciclo messaggi
@@ -201,6 +202,7 @@ class TelegramBulkDownloader {
         }
 
         const key = this.makeKeyFromMessage(msg);
+        this.loadAlreadyDownloadedKeys();
         const filteredMessages = !key || !this.alreadyDownloadedKeys.has(key);
       
         if (!filteredMessages) {
