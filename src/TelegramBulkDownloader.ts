@@ -259,7 +259,8 @@ private onDownloadedMessage(m: any) {
 // caricamento da file esistente (implementa loading effettivo nella tua app)
 private loadAlreadyDownloadedKeys() {
   // esempio semplice, sostituisci con fs.readFileSync e split sulla tua piattaforma Node.js
-  const lines = fs.readFileSync(this.alreadyDownloadedFile, 'utf8').split('\n');
+  //const lines = fs.readFileSync(this.alreadyDownloadedFile, 'utf8').split('\n');
+  const lines = fs.readFileSync(this.alreadyDownloadedFile!, 'utf8').split('\n');
   for (const line of lines) {
     if (line.trim().length > 0) alreadyDownloadedKeys.add(line.trim());
   }
