@@ -268,7 +268,8 @@ private loadAlreadyDownloadedKeys() {
 
 // salvataggio su file alla fine o dopo ogni download riuscito
 private saveKey(key: string) {
-  fs.appendFileSync(this.alreadyDownloadedFile, key + '\n');
+  //fs.appendFileSync(this.alreadyDownloadedFile, key + '\n');
+  fs.appendFileSync(this.alreadyDownloadedFile!, key + '\n', 'utf8');
 }
 
   private extractFileName(msg: any): string | null {
