@@ -199,16 +199,10 @@ class TelegramBulkDownloader {
           console.log(`File ${filePath} già esistente, salto download.`);
           continue;
         }
-        // filtraggio nel ciclo messaggi
-        //const filteredMessages = msg.filter(m => {
-        // const key = this.makeKeyFromMessage(m);
-        // if (!key) return true; // scarica se non si può calcolare il filtro, per sicurezza
-        // return !this.alreadyDownloadedKeys.has(key);
-        //});
-        const filteredMessages = msg.filter(m => {
-       // Esempio condizione: mantieni solo messaggi con media.video presente
-         return m.media && m.media.document && m.media.document.attributes.some((attr: any) => attr.className === "DocumentAttributeVideo");
-        });
+
+        const key = this.makeKeyFromMessage(msg);
+        const filteredMessages = !key || !this.alreadyDownloadedKeys.has(key);
+      
         if (!filteredMessages) {
           console.log(`File ${filePath} già scaricato, salto download.`);
           continue;        
