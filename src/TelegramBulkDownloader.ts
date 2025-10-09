@@ -23,7 +23,11 @@ class TelegramBulkDownloader {
   private SIGINT: boolean;
   private client?: TelegramClient;
   private topicFilter: string | undefined;
+  private alreadyDownloadedKeys: string | undefined;
+  private alreadyDownloadedFile: string | undefined;
+  
   constructor() {
+    this.alreadyDownloadedFile = '/home/andrea/downloaded_files.txt';
     this.topicFilter = process.argv[2];
     this.storage = new Byteroo({
       name: 'TelegramBulkDownloader',
@@ -132,12 +136,25 @@ class TelegramBulkDownloader {
 
       if (messagesTmp.length === 0) break; // non ci sono più messaggi da prendere
 
+      // Esempio di controllo durante l'elaborazione dei messaggi
+      this.alreadyDownloadedKeys = new Set<string>();
+
+
+      // filtraggio nel ciclo messaggi
+      const filteredMessages = messages.filter(m => {
+        const key = this.makeKeyFromMessage(m);
+        if (!key) return true; // scarica se non si può calcolare il filtro, per sicurezza
+        return !this.alreadyDownloadedKeys.has(key);
+      });
+
       // filtra solo quelli con topicFilter se è definito
       const filtered = topicFilter
         ? messagesTmp.filter(msg => msg.replyTo?.replyToMsgId?.toString() === topicFilter)
         : messagesTmp;
 
-      messages = messages.concat(filtered);
+      if (filteredMessages) {
+         messages = messages.concat(filtered);
+      }
 
       // aggiorna offset per il prossimo ciclo
       offset = messagesTmp[messagesTmp.length - 1].id;
@@ -199,8 +216,10 @@ class TelegramBulkDownloader {
         });
         bar.update(100);
         bar.stop();
+        this.onDownloadedMessage(msg); 
         fs.writeFileSync(filePath, buffer as any);
         msgId = msg.id;
+        
       } catch (err) {
         console.warn(err);
       }
@@ -208,6 +227,45 @@ class TelegramBulkDownloader {
       if (this.SIGINT) break;
     }
   }
+}
+
+  // Funzione di utilità per generare la stringa chiave da un messaggio
+private makeKeyFromMessage(msg: Message): string | null {
+  if (!msg.media || !msg.media.document || !msg.media.document.attributes) return null;
+  const doc = msg.media.document;
+  const videoAttr = doc.attributes.find((attr: any) => attr.className === "DocumentAttributeVideo");
+  if (!videoAttr) return null;
+
+  // size è stringa, convertilo in numero
+  const size = Number(doc.size);
+  const duration = videoAttr.duration;
+  const w = videoAttr.w;
+  const h = videoAttr.h;
+  if (size && duration && w && h) {
+    return `${size},${duration},${w},${h}`;
+  }
+  return null;
+}
+
+// alla fine del download di un messaggio:
+private onDownloadedMessage(m: Message) {
+  const key = this.makeKeyFromMessage(m);
+  if (key) this.saveKey(key);
+}
+
+
+// caricamento da file esistente (implementa loading effettivo nella tua app)
+private loadAlreadyDownloadedKeys() {
+  // esempio semplice, sostituisci con fs.readFileSync e split sulla tua piattaforma Node.js
+  const lines = fs.readFileSync(this.alreadyDownloadedFile, 'utf8').split('\n');
+  for (const line of lines) {
+    if (line.trim().length > 0) alreadyDownloadedKeys.add(line.trim());
+  }
+}
+
+// salvataggio su file alla fine o dopo ogni download riuscito
+private saveKey(key: string) {
+  fs.appendFileSync(this.alreadyDownloadedFile, key + '\n');
 }
 
   private extractFileName(msg: any): string | null {
