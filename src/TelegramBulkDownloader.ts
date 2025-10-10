@@ -209,6 +209,9 @@ class TelegramBulkDownloader {
           console.log(`File ${filePath} già scaricato, salto download.`);
           continue;        
         }
+
+        console.log(`- ${key} -`);
+      
       const bar = new cliProgress.SingleBar(
         {
           format: `${msg.id}.${getFilenameExtension(
