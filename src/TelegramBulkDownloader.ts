@@ -194,14 +194,16 @@ class TelegramBulkDownloader {
 
         const filePath = path.join(downloadDir, fileName);
 
-        console.log(` -  ${filePath} - `);
+        const key = this.makeKeyFromMessage(msg);
+        console.log(`${key}`);
+        console.log(`${filePath}`);
         // Controlla se il file esiste già, se sì, salta il download
         if (fs.existsSync(filePath)) {
           console.log(`File ${filePath} già esistente, salto download.`);
           continue;
         }
 
-        const key = this.makeKeyFromMessage(msg);
+        
         this.loadAlreadyDownloadedKeys();
         const filteredMessages = !key || !this.alreadyDownloadedKeys.has(key);
       
@@ -210,7 +212,7 @@ class TelegramBulkDownloader {
           continue;        
         }
 
-        console.log(`- ${key} -`);
+        
       
       const bar = new cliProgress.SingleBar(
         {
