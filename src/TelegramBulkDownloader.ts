@@ -235,8 +235,9 @@ class TelegramBulkDownloader {
         bar.update(100);
         bar.stop();
         
-        this.onDownloadedMessage(msg); 
+ 
         fs.writeFileSync(filePath, buffer as any);
+        this.onDownloadedMessage(msg);
         
         msgId = msg.id;
         
