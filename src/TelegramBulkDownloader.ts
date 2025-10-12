@@ -205,10 +205,12 @@ class TelegramBulkDownloader {
        const fileName1 = `${documentId}.${extension}`;
        const fileName2 = `document_${documentId}.${extension}`;
        const fileName3 = rawFileName ? `${rawFileName}` : `${msg.id}.${getFilenameExtension(msg)}`;
-
+       const fileName4 = `${messageId}.${extension}`;
+      
        const filePath1 = path.join(downloadDir, fileName1);
        const filePath2 = path.join(downloadDir, fileName2);
        const filePath3 = path.join(downloadDir, fileName3);
+       const filePath4 = path.join(downloadDir, fileName4);
 
        if (fs.existsSync(filePath1)) {
          await fs.promises.rename(filePath1, filePath);
@@ -216,6 +218,8 @@ class TelegramBulkDownloader {
          await fs.promises.rename(filePath2, filePath);
        } else if (fs.existsSync(filePath3)) {
          await fs.promises.rename(filePath3, filePath);
+       } else if (fs.existsSync(filePath4)) {
+         await fs.promises.rename(filePath4, filePath);
        }
 
         
