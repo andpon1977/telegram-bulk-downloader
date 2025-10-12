@@ -204,7 +204,7 @@ class TelegramBulkDownloader {
       
        const fileName1 = `${documentId}.${extension}`;
        const fileName2 = `document_${documentId}.${extension}`;
-       const fileName3 = `${messageId}.${extension}`;
+       const fileName3 = rawFileName ? `${rawFileName}` : `${msg.id}.${getFilenameExtension(msg)}`;
 
        const filePath1 = path.join(downloadDir, fileName1);
        const filePath2 = path.join(downloadDir, fileName2);
