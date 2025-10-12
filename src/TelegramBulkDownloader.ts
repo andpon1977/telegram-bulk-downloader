@@ -197,11 +197,30 @@ class TelegramBulkDownloader {
         const key = this.makeKeyFromMessage(msg);
         console.log(`${key}`);
         console.log(`${filePath}`);
-        // Controlla se il file esiste già, se sì, salta il download
-        if (fs.existsSync(filePath)) {
-          console.log(`File ${filePath} già esistente, salto download.`);
-          continue;
-        }
+        //rinomina file
+       const extension = getFilenameExtension(msg);
+
+       const rawFileName = this.extractFileName(msg);
+       const documentId = msg.media?.document?.id?.toString(); // stringa
+       const messageId = msg.id.toString();
+
+       const fileName = rawFileName ? `${msg.id}_${rawFileName}` : `${msg.id}.${extension}`;
+       const fileName1 = `${documentId}.${extension}`;
+       const fileName2 = `document_${documentId}.${extension}`;
+       const fileName3 = `${messageId}.${extension}`;
+
+       const filePath = path.join(downloadDir, fileName);
+       const filePath1 = path.join(downloadDir, fileName1);
+       const filePath2 = path.join(downloadDir, fileName2);
+       const filePath3 = path.join(downloadDir, fileName3);
+
+       if (fs.existsSync(filePath1)) {
+         await fs.promises.rename(filePath1, filePath);
+       } else if (fs.existsSync(filePath2)) {
+         await fs.promises.rename(filePath2, filePath);
+       } else if (fs.existsSync(filePath3)) {
+         await fs.promises.rename(filePath3, filePath);
+       }
 
         
         this.loadAlreadyDownloadedKeys();
@@ -212,40 +231,7 @@ class TelegramBulkDownloader {
           continue;        
         }
 
-        
       
-      const bar = new cliProgress.SingleBar(
-        {
-          format: `${msg.id}.${getFilenameExtension(
-            msg
-          )} {bar} {percentage}% | ETA: {eta}s`,
-        },
-        cliProgress.Presets.legacy
-      );
-      bar.start(100, 0);
-      try {
-        const buffer = await this.client.downloadMedia(msg, {
-          progressCallback: (downloaded, total) => {
-            if (this.SIGINT) throw new Error(`Aborting download, SIGINT=true`);
-            const ratio = Number(downloaded) / Number(total);
-            const progress = Math.round(Number(ratio) * 100);
-            bar.update(progress);
-          },
-        });
-        bar.update(100);
-        bar.stop();
-        
- 
-        fs.writeFileSync(filePath, buffer as any);
-        this.onDownloadedMessage(msg);
-        
-        msgId = msg.id;
-        
-      } catch (err) {
-        console.warn(err);
-      }
-      if (jsonSerializer) await jsonSerializer.append(msg);
-      if (this.SIGINT) break;
     }
   }
 }
