@@ -199,17 +199,13 @@ class TelegramBulkDownloader {
         console.log(`${filePath}`);
         //rinomina file
        const extension = getFilenameExtension(msg);
-
-       const rawFileName = this.extractFileName(msg);
        const documentId = msg.media?.document?.id?.toString(); // stringa
        const messageId = msg.id.toString();
-
-       const fileName = rawFileName ? `${msg.id}_${rawFileName}` : `${msg.id}.${extension}`;
+      
        const fileName1 = `${documentId}.${extension}`;
        const fileName2 = `document_${documentId}.${extension}`;
        const fileName3 = `${messageId}.${extension}`;
 
-       const filePath = path.join(downloadDir, fileName);
        const filePath1 = path.join(downloadDir, fileName1);
        const filePath2 = path.join(downloadDir, fileName2);
        const filePath3 = path.join(downloadDir, fileName3);
