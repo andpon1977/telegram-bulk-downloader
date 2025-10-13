@@ -178,15 +178,28 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
 
-        let subfolder = 'NoTopic';
-        if (msg.replyTo && msg.replyTo.replyToMsgId) {
-          subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
-        }
-        const downloadDir = path.join(baseDownloadDir, subfolder);
+          let subfolder = 'NoTopic';
 
-        if (!fs.existsSync(downloadDir)) {
-          fs.mkdirSync(downloadDir, { recursive: true });
-        }
+          if (msg.replyTo && msg.replyTo.replyToMsgId) {
+            try {
+              // Recupera il messaggio che rappresenta il topic
+              const topicMessages = await client.getMessages(msg.peerId, [msg.replyTo.replyToMsgId]);
+              if (topicMessages.length > 0) {
+                const topicName = topicMessages[0].message.trim();
+                subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
+              } else {
+                subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
+              }
+            } catch (err) {
+             console.warn(`Errore nel recuperare topic ${msg.replyTo.replyToMsgId}:`, err);
+              subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
+            }
+          }
+
+          const downloadDir = path.join(baseDownloadDir, subfolder);
+
+          if (!fs.existsSync(downloadDir)) {
+            fs.mkdirSync(downloadDir, { recursive: true });
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
         const rawFileName = this.extractFileName(msg);
