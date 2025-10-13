@@ -15,7 +15,7 @@ import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
 import { Api } from "telegram";
-import { bigInt } from "telegram/helpers";
+
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -180,27 +180,28 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
 
-      let subfolder = 'NoTopic';
+  let subfolder = "NoTopic";
 
   if (msg.replyTo && msg.replyTo.replyToMsgId) {
     try {
-     
-     const inputChannel = new Api.InputPeerChannel({
-  channelId: bigInt(msg.peerId.channelId),
-  accessHash: bigInt(msg.peerId.accessHash)
-});
+      const inputChannel = new Api.InputPeerChannel({
+        channelId: msg.peerId.channelId.toString(),
+        accessHash: msg.peerId.accessHash.toString(),
+      });
 
       const result = await this.client.invoke(
         new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(msg.replyTo.replyToMsgId) })]
+          id: [new Api.InputMessageID({ id: Number(msg.replyTo.replyToMsgId) })],
         })
       );
 
-      if (result.messages.length > 0) {
+      if ("messages" in result && result.messages.length > 0) {
         const firstMsg = result.messages[0];
-        if (firstMsg._ !== 'messageEmpty' && 'message' in firstMsg) {
-          const topicName = (firstMsg as Api.Message).message.trim();
-          subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
+        if (firstMsg._ !== "messageEmpty" && "message" in firstMsg) {
+          const topicName = firstMsg.message.trim();
+          subfolder = topicName
+            ? topicName.replace(/[\\/:"*?<>|\s]+/g, "_")
+            : `Topic_${msg.replyTo.replyToMsgId}`;
         } else {
           subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
         }
