@@ -200,6 +200,7 @@ class TelegramBulkDownloader {
 
           if (!fs.existsSync(downloadDir)) {
             fs.mkdirSync(downloadDir, { recursive: true });
+          }
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
         const rawFileName = this.extractFileName(msg);
