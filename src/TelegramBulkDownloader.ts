@@ -14,7 +14,7 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
-import { Api, BigInteger } from "telegram";
+import { Api } from "telegram";
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -179,13 +179,14 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
 
-       let subfolder = 'NoTopic';
+        let subfolder = 'NoTopic';
 
         if (msg.replyTo && msg.replyTo.replyToMsgId) {
           try {
+      // Usa bigint per channelId e accessHash se il tipo è bigint nella libreria
             const inputChannel = new Api.InputPeerChannel({
-              channelId: BigInteger(msg.peerId.channelId),
-              accessHash: BigInteger(msg.peerId.accessHash)
+              channelId: BigInt(msg.peerId.channelId),
+              accessHash: BigInt(msg.peerId.accessHash)
             });
 
             const result = await this.client.invoke(
@@ -194,8 +195,10 @@ class TelegramBulkDownloader {
               })
             );
 
-            if ("messages" in result && result.messages.length > 0) {
-              const topicName = result.messages[0].message?.trim() || '';
+            // Verifica che esista almeno un messaggio e che non sia vuoto
+            const messages = "messages" in result ? result.messages : [];
+            if (messages.length > 0 && messages[0]._ && messages[0].message) {
+              const topicName = messages[0].message.trim();
               subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
             } else {
               subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
