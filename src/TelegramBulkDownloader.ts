@@ -223,14 +223,10 @@ class TelegramBulkDownloader {
        }
 
         
-        this.loadAlreadyDownloadedKeys();
-        const filteredMessages = !key || !this.alreadyDownloadedKeys.has(key);
-      
-        if (!filteredMessages) {
-          console.log(`File ${filePath} già scaricato, salto download.`);
-          continue;        
+        if (fs.existsSync(filePath)) {
+          console.log(`${key}`);
+          continue;
         }
-
       
     }
   }
