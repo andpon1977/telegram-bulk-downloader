@@ -14,7 +14,7 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
-import { Api } from "telegram";
+import { Api, BigInteger } from "telegram/tl/core";
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -179,41 +179,43 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
 
-        let subfolder = 'NoTopic';
+      let subfolder = 'NoTopic';
 
-        if (msg.replyTo && msg.replyTo.replyToMsgId) {
-          try {
-      // Usa bigint per channelId e accessHash se il tipo è bigint nella libreria
-            const inputChannel = new Api.InputPeerChannel({
-              channelId: BigInt(msg.peerId.channelId),
-              accessHash: BigInt(msg.peerId.accessHash)
-            });
+  if (msg.replyTo && msg.replyTo.replyToMsgId) {
+    try {
+      const inputChannel = new Api.InputPeerChannel({
+        channelId: BigInteger.fromString(msg.peerId.channelId.toString()),
+        accessHash: BigInteger.fromString(msg.peerId.accessHash.toString())
+      });
 
-            const result = await this.client.invoke(
-              new Api.messages.GetMessages({
-                id: [new Api.InputMessageID({ id: Number(msg.replyTo.replyToMsgId) })]
-              })
-            );
+      const result = await this.client.invoke(
+        new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(msg.replyTo.replyToMsgId) })]
+        })
+      );
 
-            // Verifica che esista almeno un messaggio e che non sia vuoto
-            const messages = "messages" in result ? result.messages : [];
-            if (messages.length > 0 && messages[0]._ && messages[0].message) {
-              const topicName = messages[0].message.trim();
-              subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
-            } else {
-              subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
-            }
-          } catch (err) {
-            console.warn(`Errore nel recuperare topic ${msg.replyTo.replyToMsgId}:`, err);
-            subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
-          }
+      if (result.messages.length > 0) {
+        const firstMsg = result.messages[0];
+        if (firstMsg._ !== 'messageEmpty' && 'message' in firstMsg) {
+          const topicName = (firstMsg as Api.Message).message.trim();
+          subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
+        } else {
+          subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
         }
+      } else {
+        subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
+      }
+    } catch (err) {
+      console.warn(`Errore nel recuperare topic ${msg.replyTo.replyToMsgId}:`, err);
+      subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
+    }
+  }
 
-        const downloadDir = path.join(baseDownloadDir, subfolder);
+  const downloadDir = path.join(baseDownloadDir, subfolder);
 
-        if (!fs.existsSync(downloadDir)) {
-          fs.mkdirSync(downloadDir, { recursive: true });
-        }
+  if (!fs.existsSync(downloadDir)) {
+    fs.mkdirSync(downloadDir, { recursive: true });
+  }
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
         const rawFileName = this.extractFileName(msg);
