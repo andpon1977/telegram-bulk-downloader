@@ -14,7 +14,7 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
-import { Api } from "telegram"; // o dalla libreria che usi per client MTProto
+import { Api, BigInteger } from "telegram";
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -179,15 +179,13 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
 
-          let subfolder = 'NoTopic';
+       let subfolder = 'NoTopic';
 
         if (msg.replyTo && msg.replyTo.replyToMsgId) {
           try {
-            // Costruisci l'InputPeer dal peerId del messaggio
-            // Supponendo che msg.peerId.channelId e msg.peerId.accessHash siano disponibili
             const inputChannel = new Api.InputPeerChannel({
-              channelId: Number(msg.peerId.channelId),
-              accessHash: BigInt(msg.peerId.accessHash)
+              channelId: BigInteger(msg.peerId.channelId),
+              accessHash: BigInteger(msg.peerId.accessHash)
             });
 
             const result = await this.client.invoke(
@@ -196,9 +194,8 @@ class TelegramBulkDownloader {
               })
             );
 
-            if (result.messages.length > 0) {
+            if ("messages" in result && result.messages.length > 0) {
               const topicName = result.messages[0].message?.trim() || '';
-              // Sostituisci caratteri speciali e spazi con underscore per nome cartella
               subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
             } else {
               subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
@@ -213,7 +210,7 @@ class TelegramBulkDownloader {
 
         if (!fs.existsSync(downloadDir)) {
           fs.mkdirSync(downloadDir, { recursive: true });
-        } 
+        }
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
         const rawFileName = this.extractFileName(msg);
