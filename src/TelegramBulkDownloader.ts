@@ -183,7 +183,7 @@ class TelegramBulkDownloader {
           if (msg.replyTo && msg.replyTo.replyToMsgId) {
             try {
               // Recupera il messaggio che rappresenta il topic
-              const topicMessages = await client.getMessages(msg.peerId, [msg.replyTo.replyToMsgId]);
+              const topicMessages = await this.client.getMessages(msg.peerId, [msg.replyTo.replyToMsgId]);
               if (topicMessages.length > 0) {
                 const topicName = topicMessages[0].message.trim();
                 subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
