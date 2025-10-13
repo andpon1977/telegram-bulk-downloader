@@ -195,8 +195,8 @@ class TelegramBulkDownloader {
         const filePath = path.join(downloadDir, fileName);
 
         const key = this.makeKeyFromMessage(msg);
-        console.log(`${key}`);
-        console.log(`${filePath}`);
+        //console.log(`${key}`);
+        //console.log(`${filePath}`);
         //rinomina file
        const extension = getFilenameExtension(msg);
        const documentId = msg.media?.document?.id?.toString(); // stringa
