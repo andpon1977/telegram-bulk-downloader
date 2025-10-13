@@ -14,7 +14,7 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
-import { Api } from "telegram";
+import { Api, BigInt } from "telegram";
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -185,9 +185,9 @@ class TelegramBulkDownloader {
     try {
      
       const inputChannel = new Api.InputPeerChannel({
-        channelId: BigInt(msg.peerId.channelId),    // usa il tipo nativo bigint con BigInt()
-        accessHash: BigInt(msg.peerId.accessHash)
-      });
+  channelId: BigInt(msg.peerId.channelId),
+  accessHash: BigInt(msg.peerId.accessHash)
+});
 
       const result = await this.client.invoke(
         new Api.messages.GetMessages({
