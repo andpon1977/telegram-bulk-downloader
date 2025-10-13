@@ -180,7 +180,7 @@ class TelegramBulkDownloader {
       ////////
     for (const msg of mediaMessages) {
 
-  let subfolder = "NoTopic";
+ let subfolder = "NoTopic";
 
   if (msg.replyTo && msg.replyTo.replyToMsgId) {
     try {
@@ -197,7 +197,7 @@ class TelegramBulkDownloader {
 
       if ("messages" in result && result.messages.length > 0) {
         const firstMsg = result.messages[0];
-        if (firstMsg._ !== "messageEmpty" && "message" in firstMsg) {
+        if (firstMsg.className !== "MessageEmpty" && "message" in firstMsg) {
           const topicName = firstMsg.message.trim();
           subfolder = topicName
             ? topicName.replace(/[\\/:"*?<>|\s]+/g, "_")
