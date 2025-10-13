@@ -14,6 +14,7 @@ import getFilenameExtension from './helpers/getFilenameExtension';
 import MediaType from './types/MediaType';
 import { LogLevel } from 'telegram/extensions/Logger';
 import cliProgress from 'cli-progress';
+import { Api } from "telegram"; // o dalla libreria che usi per client MTProto
 
 class TelegramBulkDownloader {
   private storage: Byteroo;
@@ -180,27 +181,39 @@ class TelegramBulkDownloader {
 
           let subfolder = 'NoTopic';
 
-          if (msg.replyTo && msg.replyTo.replyToMsgId) {
-            try {
-              // Recupera il messaggio che rappresenta il topic
-              const topicMessages = await this.client.getMessages(msg.peerId, [msg.replyTo.replyToMsgId]);
-              if (topicMessages.length > 0) {
-                const topicName = topicMessages[0].message.trim();
-                subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
-              } else {
-                subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
-              }
-            } catch (err) {
-             console.warn(`Errore nel recuperare topic ${msg.replyTo.replyToMsgId}:`, err);
+        if (msg.replyTo && msg.replyTo.replyToMsgId) {
+          try {
+            // Costruisci l'InputPeer dal peerId del messaggio
+            // Supponendo che msg.peerId.channelId e msg.peerId.accessHash siano disponibili
+            const inputChannel = new Api.InputPeerChannel({
+              channelId: Number(msg.peerId.channelId),
+              accessHash: BigInt(msg.peerId.accessHash)
+            });
+
+            const result = await this.client.invoke(
+              new Api.messages.GetMessages({
+                id: [new Api.InputMessageID({ id: Number(msg.replyTo.replyToMsgId) })]
+              })
+            );
+
+            if (result.messages.length > 0) {
+              const topicName = result.messages[0].message?.trim() || '';
+              // Sostituisci caratteri speciali e spazi con underscore per nome cartella
+              subfolder = topicName ? topicName.replace(/[\\/:"*?<>|\s]+/g, '_') : `Topic_${msg.replyTo.replyToMsgId}`;
+            } else {
               subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
             }
+          } catch (err) {
+            console.warn(`Errore nel recuperare topic ${msg.replyTo.replyToMsgId}:`, err);
+            subfolder = `Topic_${msg.replyTo.replyToMsgId}`;
           }
+        }
 
-          const downloadDir = path.join(baseDownloadDir, subfolder);
+        const downloadDir = path.join(baseDownloadDir, subfolder);
 
-          if (!fs.existsSync(downloadDir)) {
-            fs.mkdirSync(downloadDir, { recursive: true });
-          }
+        if (!fs.existsSync(downloadDir)) {
+          fs.mkdirSync(downloadDir, { recursive: true });
+        } 
 
         // Nome file personalizzato: parte con msg.id + "_" + fileName se presente, altrimenti estensione usata come prima
         const rawFileName = this.extractFileName(msg);
