@@ -23,6 +23,7 @@ class TelegramBulkDownloader {
   private SIGINT: boolean;
   private client?: TelegramClient;
   private topicFilter: string | undefined;
+  private maxSize: number | null = null;
   private alreadyDownloadedKeys: Set<string>;
   //private alreadyDownloadedKeys: string | undefined;
   private alreadyDownloadedFile: string | undefined;
@@ -32,6 +33,10 @@ class TelegramBulkDownloader {
     this.alreadyDownloadedKeys = new Set<string>();
     this.alreadyDownloadedFile = '/home/andrea/downloaded_files.txt';
     this.topicFilter = process.argv[2];
+    const input = Number(process.argv[3]);
+    if (!isNaN(input)) {
+      this.maxSize = input;
+    }
     this.storage = new Byteroo({
       name: 'TelegramBulkDownloader',
       autocommit: true,
@@ -195,8 +200,28 @@ class TelegramBulkDownloader {
         const filePath = path.join(downloadDir, fileName);
 
         const key = this.makeKeyFromMessage(msg);
+        let fileSize: number = 0;
+        if (key !== null) {
+          // Divido la stringa usando la virgola come separatore
+          const parts = key.split(",");
+          if (parts.length > 0) {
+            // Converto il primo elemento in numero
+            fileSize = Number(parts[0]);
+            // Verifico che sia un numero valido
+            if (isNaN(fileSize)) {
+              fileSize = 0;
+            }
+          }
+        }
+      
         console.log(`${key}`);
         console.log(`${filePath}`);
+
+        //salto se la dimensione è maggiore di maxSize
+        if ( fileSize > this.maxSize ) {
+          console.log(`Dimensione file ${fileSize} maggiore di ${this.maxSize}, salto il download.`);
+          continue;
+        }
         // Controlla se il file esiste già, se sì, salta il download
         if (fs.existsSync(filePath)) {
           console.log(`File ${filePath} già esistente, salto download.`);
