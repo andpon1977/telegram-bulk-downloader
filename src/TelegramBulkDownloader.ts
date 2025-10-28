@@ -218,7 +218,7 @@ class TelegramBulkDownloader {
         console.log(`${filePath}`);
 
         //salto se la dimensione è maggiore di maxSize
-        if ( fileSize > this.maxSize ) {
+       if (fileSize !== null && fileSize > this.maxSize) {
           console.log(`Dimensione file ${fileSize} maggiore di ${this.maxSize}, salto il download.`);
           continue;
         }
