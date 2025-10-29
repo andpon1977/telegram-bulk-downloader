@@ -218,8 +218,8 @@ class TelegramBulkDownloader {
         console.log(`${filePath}`);
 
         //salto se la dimensione è maggiore di maxSize
-        if ((fileSize ?? 0) > (this.maxSize ?? 10737418240)) {
-          console.log(`Dimensione file ${fileSize} maggiore di ${this.maxSize}, salto il download.`);
+        if ((fileSize ?? 0) < (this.maxSize ?? 10737418240)) {
+          console.log(`Dimensione file ${fileSize} minore di ${this.maxSize}, salto il download.`);
           continue;
         }
         // Controlla se il file esiste già, se sì, salta il download
