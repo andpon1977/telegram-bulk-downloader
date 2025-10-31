@@ -214,18 +214,16 @@ class TelegramBulkDownloader {
           }
         }
       
-        console.log(`${key}`);
-        console.log(`${filePath}`);
-
+      
        
 
         
         this.loadAlreadyDownloadedKeys();
         const filteredMessages = !key || !this.alreadyDownloadedKeys.has(key);
       
-        if (!filteredMessages && (fileSize ?? 0) > (this.maxSize ?? 10737418240)) {
-          console.log(`File ${filePath} già scaricato, salto download.`);
-          continue;        
+        if (filteredMessages && (fileSize ?? 0) > (this.maxSize ?? 10737418240)) {
+          console.log(`${key}`);
+          console.log(`${filePath}`);
         }
   
     }
