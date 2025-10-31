@@ -217,26 +217,17 @@ class TelegramBulkDownloader {
         console.log(`${key}`);
         console.log(`${filePath}`);
 
-        //salto se la dimensione è maggiore di maxSize
-        if ((fileSize ?? 0) < (this.maxSize ?? 10737418240)) {
-          console.log(`Dimensione file ${fileSize} minore di ${this.maxSize}, salto il download.`);
-          continue;
-        }
-        // Controlla se il file esiste già, se sì, salta il download
-        if (fs.existsSync(filePath)) {
-          console.log(`File ${filePath} già esistente, salto download.`);
-          continue;
-        }
+       
 
         
         this.loadAlreadyDownloadedKeys();
         const filteredMessages = !key || !this.alreadyDownloadedKeys.has(key);
       
-        if (!filteredMessages) {
+        if (!filteredMessages && (fileSize ?? 0) > (this.maxSize ?? 10737418240)) {
           console.log(`File ${filePath} già scaricato, salto download.`);
           continue;        
         }
-
+      continue;
         
       
       const bar = new cliProgress.SingleBar(
