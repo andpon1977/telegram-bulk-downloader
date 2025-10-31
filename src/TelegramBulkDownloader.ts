@@ -227,41 +227,7 @@ class TelegramBulkDownloader {
           console.log(`File ${filePath} già scaricato, salto download.`);
           continue;        
         }
-      continue;
-        
-      
-      const bar = new cliProgress.SingleBar(
-        {
-          format: `${msg.id}.${getFilenameExtension(
-            msg
-          )} {bar} {percentage}% | ETA: {eta}s`,
-        },
-        cliProgress.Presets.legacy
-      );
-      bar.start(100, 0);
-      try {
-        const buffer = await this.client.downloadMedia(msg, {
-          progressCallback: (downloaded, total) => {
-            if (this.SIGINT) throw new Error(`Aborting download, SIGINT=true`);
-            const ratio = Number(downloaded) / Number(total);
-            const progress = Math.round(Number(ratio) * 100);
-            bar.update(progress);
-          },
-        });
-        bar.update(100);
-        bar.stop();
-        
- 
-        fs.writeFileSync(filePath, buffer as any);
-        this.onDownloadedMessage(msg);
-        
-        msgId = msg.id;
-        
-      } catch (err) {
-        console.warn(err);
-      }
-      if (jsonSerializer) await jsonSerializer.append(msg);
-      if (this.SIGINT) break;
+  
     }
   }
 }
